@@ -35,9 +35,12 @@ It calls our "dev" script which uses nodemon to restart server whenever there ar
 ## Making requests
 
 Use curl/[Postman](https://www.getpostman.com/) to make requests to localhost:3000/api
+
 ```
 curl -H "Content-Type: application/json" \
      -X POST \
      -d '{"email":"zach@uwindsor.ca","password":"password1234"}' \
      http://localhost:3000/api/user/login
 ```
+
+API spec can be found [here](https://github.com/SmartCampusUWindsor/smartcampus-api/wiki/API-Spec)
