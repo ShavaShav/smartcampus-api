@@ -11,6 +11,7 @@ passport.use(new LocalStrategy({
   models.User.find({
       where: { email: email }
     }).then(function(user) {
+      console.log(user);
       if(!user) {
         return done(null, false, {errors: {'email': 'doesn\'t exist'}});
       }

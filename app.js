@@ -23,12 +23,6 @@ if (app.get('env') === 'production') {
   });
 }
 
-// connect to database
-mongoose.connect(config.MONGO_URI);
-mongoose.connection.on('error', function(err) {
-  console.log('Error: Could not connect to MongoDB.');
-});
-
 // require models for routes to use
 require('./models/User');
 require('./config/passport');

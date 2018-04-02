@@ -2,20 +2,19 @@ var models  = require('../../models');
 
 var router = require('express').Router();
 var passport = require('passport');
-var User = mongoose.model('User');
 var auth = require('../auth');
 
 // Return current user
-router.get('/', auth.required, function(req, res, next) {
+router.get('/', auth.optional, function(req, res, next) {
   models.User.find({
       where: {
-         id: req.payload.id
+         id: req.user.id
       }
    }).then(function(user) {
       if (!user) {
           return res.sendStatus(401); // JWT payload doesn't match a user
       }
-      return res.json({user: user.toJSON()});
+      return res.json({user: user.authJSON()});
    }).catch(next);
 });
 
@@ -36,7 +35,7 @@ router.post('/login', function(req, res, next){
     // authentication passed, assign JWT to model and return User JSON
     if(user){
       user.token = user.generateJWT();
-      return res.json({user: user.toJSON()});
+      return res.json({user: user.authJSON()});
     } else {
       return res.status(422).json(info);
     }
@@ -58,11 +57,13 @@ router.post('/', function(req, res, next){
   }
 
   models.User.create({
-    username: req.body.user.usernme,
+    username: req.body.user.username,
     email: req.body.user.email,
-    password: this.setPassword(eq.body.user.password)
   }).then(user => {
-    return res.json({user: user.toJSON()});
+    user.setPassword(req.body.user.password);
+    user.save().then(function(user){
+      return res.json({user: user.authJSON()});
+    }).catch(next);
   }).catch(next);
 
 });
