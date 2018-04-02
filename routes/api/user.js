@@ -43,7 +43,7 @@ router.post('/login', function(req, res, next){
 });
 
 // Register new user
-router.post('/', function(req, res, next){
+router.post('/register', function(req, res, next){
   if(!req.body.user.username){
     return res.status(422).json({errors: {username: "can't be blank"}});
   }

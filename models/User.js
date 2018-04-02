@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     salt: DataTypes.STRING
   }, {
     freezeTableName: true,
-    tableName: 'users',
+    tableName: 'Users',
     timestamps: true
   });
 
@@ -23,14 +23,13 @@ module.exports = (sequelize, DataTypes) => {
   // Calculates and sets salt and hash using PBKDF2, given plaintext password
   User.prototype.setPassword = function(password){
     this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    // for some reason, hash is 1024 characters long. Should be 128?
+    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 64, 'sha512').toString('hex');
   };
 
   // Checks plaintext password against hash, returns boolean
   User.prototype.isValidPassword = function(password) {
-    var hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === hash.slice(0, 255); 
+    var hash = crypto.pbkdf2Sync(password, this.salt, 10000, 64, 'sha512').toString('hex');
+    return this.hash === hash; 
   };
 
   // Returns a fresh JSON webtoken for user
@@ -51,6 +50,8 @@ module.exports = (sequelize, DataTypes) => {
     return {
       username: this.username,
       email: this.email,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
       token: this.generateJWT()
     };
   };
