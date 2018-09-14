@@ -4,6 +4,7 @@ var router = require('express').Router();
 var passport = require('passport');
 var auth = require('../auth');
 
+// GET /user
 // Return current user
 router.get('/', auth.required, function(req, res, next) {
   models.User.find({
@@ -18,6 +19,7 @@ router.get('/', auth.required, function(req, res, next) {
    }).catch(next);
 });
 
+// POST /user/login
 // Authenticate user
 router.post('/login', function(req, res, next){
   if(!req.body.user.email){
@@ -41,6 +43,7 @@ router.post('/login', function(req, res, next){
   })(req, res, next);
 });
 
+// POST /user/register
 // Register new user
 router.post('/register', function(req, res, next){
   if(!req.body.user.username){
