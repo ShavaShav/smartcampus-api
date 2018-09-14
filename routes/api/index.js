@@ -1,6 +1,7 @@
 var router = require('express').Router();
 
 router.use('/user', require('./user'));
+router.use('/events', require('./events'));
 
 // validation error handler for any /api calls
 router.use(function(err, req, res, next){

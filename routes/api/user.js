@@ -5,7 +5,7 @@ var passport = require('passport');
 var auth = require('../auth');
 
 // Return current user
-router.get('/', auth.optional, function(req, res, next) {
+router.get('/', auth.required, function(req, res, next) {
   models.User.find({
       where: {
          id: req.user.id
@@ -34,7 +34,6 @@ router.post('/login', function(req, res, next){
 
     // authentication passed, assign JWT to model and return User JSON
     if(user){
-      user.token = user.generateJWT();
       return res.json({user: user.authJSON()});
     } else {
       return res.status(422).json(info);

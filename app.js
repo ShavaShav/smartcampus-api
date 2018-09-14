@@ -9,6 +9,8 @@ var cors = require('cors');
 
 var app = express();
 
+const PRODUCTION = app.get('env') === 'production';
+
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,7 +18,7 @@ app.use(cookieParser());
 app.use(cors());
 
 // force https if not development
-if (app.get('env') === 'production') {
+if (PRODUCTION) {
   app.use(function(req, res, next) {
     var protocol = req.get('x-forwarded-proto');
     protocol == 'https' ? next() : res.redirect('https://' + req.hostname + req.url);
@@ -39,9 +41,14 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  if (!PRODUCTION) {
+    // log error to console for debug
+    console.log(err);
+  }
+
   // set locals, only providing error stack in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = PRODUCTION ? {} : err.stack;
 
   // return the error
   res.status(err.status || 500);

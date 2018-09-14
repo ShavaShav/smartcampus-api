@@ -16,8 +16,9 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
+  // Events are tied to Users
   User.associate = function(models) {
-    // associations can be defined here
+    User.hasMany(models.Event, {onDelete: 'cascade', foreignKey: 'authorId'});
   };
 
   // Calculates and sets salt and hash using PBKDF2, given plaintext password
@@ -39,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     exp.setDate(today.getDate() + 60); // expire in 60 days
 
     return jwt.sign({
-      id: this._id,
+      id: this.id,
       username: this.username,
       exp: parseInt(exp.getTime() / 1000),
     }, secret);
@@ -48,11 +49,23 @@ module.exports = (sequelize, DataTypes) => {
   // Response during authentication (registration/login)
   User.prototype.authJSON = function(){
     return {
+      id: this.id,
       username: this.username,
       email: this.email,
       created_at: this.createdAt,
       updated_at: this.updatedAt,
       token: this.generateJWT()
+    };
+  };
+
+  // User details to expose (even without auth)
+  User.prototype.toJSON = function(){
+    return {
+      id: this.id,
+      username: this.username,
+      email: this.email,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt
     };
   };
 

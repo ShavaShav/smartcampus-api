@@ -21,12 +21,10 @@ and still provide access to unregistered users
 var auth = {
   required: jwt({
     secret: secret,
-    userProperty: 'payload',
     getToken: getTokenFromHeader
   }),
   optional: jwt({
     secret: secret,
-    userProperty: 'payload',
     credentialsRequired: false,
     getToken: getTokenFromHeader
   })
