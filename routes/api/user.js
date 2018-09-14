@@ -12,7 +12,7 @@ router.get('/', auth.required, function(req, res, next) {
       }
    }).then(function(user) {
       if (!user) {
-          return res.sendStatus(401); // JWT payload doesn't match a user
+          return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
       }
       return res.json({user: user.authJSON()});
    }).catch(next);

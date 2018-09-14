@@ -3,7 +3,7 @@
 module.exports = (sequelize, DataTypes) => {
   var Event = sequelize.define('Event', {
     title: DataTypes.STRING,
-    time: DataTypes.TIME,
+    time: DataTypes.DATE,
     location: DataTypes.STRING,
     link: DataTypes.STRING,
     body: DataTypes.TEXT

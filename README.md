@@ -1,46 +1,13 @@
-## Setup
+# smartcampus-api
 
-### Install MongoDB
-https://docs.mongodb.com/manual/administration/install-community/
+[![pipeline status](https://gitlab.cs.uwindsor.ca/smart-campus/smartcampus-api/badges/master/pipeline.svg)](https://gitlab.cs.uwindsor.ca/smart-campus/smartcampus-api/commits/master)
+[![coverage report](https://gitlab.cs.uwindsor.ca/smart-campus/smartcampus-api/badges/master/coverage.svg)](https://gitlab.cs.uwindsor.ca/smart-campus/smartcampus-api/commits/master)
 
-### Install Node and npm
-https://nodejs.org/en/
+A RestAPI server for uWindsor's SmartCampus event social network, built with NodeJS/Express.
 
-### Clone and install node modules
+See [the wiki](https://gitlab.cs.uwindsor.ca/smart-campus/smartcampus-api/wikis) for Developer information.
 
-```
-git clone https://github.com/SmartCampusUWindsor/smartcampus-api.git
-cd smartcampus-api
-npm install
-```
-
-## Running server
-
-### Start MongoDB 
-
-```
-mongod
-```
-
-You may need to create the data directory if it doesn't already exist.
-
-### Start app
-
-```
-npm run dev
-```
-
-It calls our "dev" script which uses nodemon to restart server whenever there are changes to files.
-
-## Making requests
-
-Use curl/[Postman](https://www.getpostman.com/) to make requests to localhost:3000/api
-
-```
-curl -H "Content-Type: application/json" \
-     -X POST \
-     -d '{"email":"zach@uwindsor.ca","password":"password1234"}' \
-     http://localhost:3000/api/user/login
-```
-
-API spec can be found [here](https://github.com/SmartCampusUWindsor/smartcampus-api/wiki/API-Spec)
+See the following for framework information:
+* [NodeJS documentation](https://nodejs.org/dist/latest-v8.x/docs/api/)
+* [Express API](https://expressjs.com/en/api.html)
+* [Sequelize ORM documentation](http://docs.sequelizejs.com/)

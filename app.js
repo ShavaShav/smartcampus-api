@@ -3,7 +3,6 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
 var config = require('./config');
 var cors = require('cors');
 
@@ -25,8 +24,7 @@ if (PRODUCTION) {
   });
 }
 
-// require models for routes to use
-require('./models/User');
+// load passport for authentication
 require('./config/passport');
 
 // load routes
@@ -39,13 +37,8 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// error handler
+// catch all formatter for error responses
 app.use(function(err, req, res, next) {
-  if (!PRODUCTION) {
-    // log error to console for debug
-    console.log(err);
-  }
-
   // set locals, only providing error stack in development
   res.locals.message = err.message;
   res.locals.error = PRODUCTION ? {} : err.stack;

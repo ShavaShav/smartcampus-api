@@ -6,7 +6,10 @@ var auth = require('../auth');
 
 // Get all events
 router.get('/', auth.optional, function(req, res, next) {
-  models.Event.findAll({include: ['author']}).then(events => {
+  models.Event.findAll({
+    include: ['author'],
+    order: [ ['createdAt', 'DESC'] ] // newly created events first
+  }).then(events => {
     return res.json({events: events});
   });
 });
