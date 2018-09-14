@@ -4,14 +4,22 @@ var router = require('express').Router();
 var passport = require('passport');
 var auth = require('../auth');
 
-// Get event feed
+// Get all events
 router.get('/', auth.optional, function(req, res, next) {
-
+  models.Event.findAll({include: ['author']}).then(events => {
+    return res.json({events: events});
+  });
 });
 
-// Get event
-router.get('/#', auth.optional, function(req, res, next){
+// Get single event
+router.get('/:id', auth.optional, function(req, res, next){
+  models.Event.findById(req.params.id, {include: ['author']}).then(event => {
+    if (!event) {
+      return res.status(404).json({error: "Event not found"});
+    }
 
+    return res.json({event: event});
+  });
 });
 
 // Create event
@@ -57,8 +65,23 @@ router.post('/', auth.required, function(req, res, next){
 });
 
 // Delete event
-router.delete('/#', auth.required, function(req, res, next){
+router.delete('/:id', auth.required, function(req, res, next){
+  // Check if event belongs to user
+  models.Event.findById(req.params.id).then(event => {
+    if (!event) {
+      return res.status(404).json({error: "Event not found"});
+    }
 
+    if (event.authorId === req.user.id) {
+      event.destroy().then(() => {
+        return res.json({message: "Event deleted"});
+      }).catch(err => {
+        return res.status(500).json({error: "Failed to delete event. Try again."});
+      });
+    } else {
+      return res.status(401).json({error: "Failed to delete event. Unauthorized."})
+    }
+  })
 });
 
 module.exports = router;

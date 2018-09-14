@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   Event.prototype.toJSON = function(){
 	return {
       id: this.id,
-      author: this.author,
+      author: this.author.toJSON(),
       title: this.title,
       time: this.time,
       location: this.location,
