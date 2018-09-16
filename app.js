@@ -5,19 +5,21 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var config = require('./config');
 var cors = require('cors');
+require('./config/passport');
 
 var app = express();
 
-const PRODUCTION = app.get('env') === 'production';
-
+// Load middleware
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
-// force https if not development
-if (PRODUCTION) {
+const PROD = app.get('env') === 'production';
+
+if (PROD) {
+  // force https in production
   app.use(function(req, res, next) {
     var protocol = req.get('x-forwarded-proto');
     protocol == 'https' ? next() : res.redirect('https://' + req.hostname + req.url);
@@ -39,9 +41,9 @@ app.use(function(req, res, next) {
 
 // catch all formatter for error responses
 app.use(function(err, req, res, next) {
-  // set locals, only providing error stack in development
+  // set locals, only providing error stack in development/test
   res.locals.message = err.message;
-  res.locals.error = PRODUCTION ? {} : err.stack;
+  res.locals.error = PROD ? {} : err.stack;
 
   // return the error
   res.status(err.status || 500);

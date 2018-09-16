@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www",
-    "test": "echo \" No tests, yet..\" && exit 1"
+    "dev": "node ./node_modules/nodemon/bin/nodemon ./bin/www",
+    "test": "node ./node_modules/mocha/bin/mocha --exit",
+    "coverage": "node ./node_modules/nyc/bin/nyc --reporter=html --reporter=text ./node_modules/mocha/bin/mocha --exit"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
@@ -25,8 +26,12 @@
     "sequelize": "^4.37.5"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
     "faker": "^4.1.0",
+    "mocha": "^5.2.0",
     "nodemon": "^1.18.4",
-    "sequelize-cli": "^4.0.0"
+    "nyc": "^13.0.1",
+    "sequelize-cli": "^4.0.0",
+    "supertest": "^3.3.0"
   }
 }
