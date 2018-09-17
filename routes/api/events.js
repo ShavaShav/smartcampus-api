@@ -4,6 +4,7 @@ var router = require('express').Router();
 var passport = require('passport');
 var auth = require('../auth');
 
+// GET /events
 // Get all events
 router.get('/', auth.optional, function(req, res, next) {
   models.Event.findAll({
@@ -14,8 +15,9 @@ router.get('/', auth.optional, function(req, res, next) {
   });
 });
 
+// GET /events/#
 // Get single event
-router.get('/:id', auth.optional, function(req, res, next){
+router.get('/:id', auth.optional, function(req, res, next) {
   models.Event.findById(req.params.id, {include: ['author']}).then(event => {
     if (!event) {
       return res.status(404).json({error: "Event not found"});
@@ -25,6 +27,7 @@ router.get('/:id', auth.optional, function(req, res, next){
   });
 });
 
+// POST /events
 // Create event
 router.post('/', auth.required, function(req, res, next){
   
@@ -67,6 +70,7 @@ router.post('/', auth.required, function(req, res, next){
   }).catch(next);
 });
 
+// DEL /events/#
 // Delete event
 router.delete('/:id', auth.required, function(req, res, next){
   // Check if event belongs to user
