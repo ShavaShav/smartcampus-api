@@ -1,27 +1,28 @@
-var models  = require('../../models');
-
-var router = require('express').Router();
+var router   = require('express').Router();
 var passport = require('passport');
-var auth = require('../auth');
+var auth     = require('../auth');
+var models   = require('../../models');
 
 // GET /user
 // Return current user
 router.get('/', auth.required, function(req, res, next) {
   models.User.find({
-      where: {
-         id: req.user.id
-      }
-   }).then(function(user) {
-      if (!user) {
-          return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
-      }
-      return res.json({user: user.authJSON()});
-   }).catch(next);
+    where: {
+       id: req.user.id
+    }
+  }).then(function(user) {
+    if (!user) {
+        return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
+    }
+    // Return the user (token rep)
+    return res.json({user: user.authJSON()});
+  }).catch(next);
 });
 
 // POST /user/login
 // Authenticate user
 router.post('/login', function(req, res, next){
+  // Validate email and password input
   if(!req.body.user.email){
     return res.status(422).json({errors: {email: "can't be blank"}});
   }
@@ -31,10 +32,10 @@ router.post('/login', function(req, res, next){
   }
 
   passport.authenticate('local', {session: false}, function(err, user, info){
-  	// didn't pass authentication (bad password/email)
+    // didn't pass authentication (bad password/email)
     if(err){ return next(err); }
 
-    // authentication passed, assign JWT to model and return User JSON
+    // authentication passed, return the user (token rep)
     if(user){
       return res.json({user: user.authJSON()});
     } else {
@@ -46,6 +47,7 @@ router.post('/login', function(req, res, next){
 // POST /user/register
 // Register new user
 router.post('/register', function(req, res, next){
+  // Validate email, username, and password input
   if(!req.body.user.username){
     return res.status(422).json({errors: {username: "can't be blank"}});
   }
@@ -62,10 +64,12 @@ router.post('/register', function(req, res, next){
     username: req.body.user.username,
     email: req.body.user.email,
   }).then(user => {
+    // User created, can now set password
     user.setPassword(req.body.user.password);
-    user.save().then(function(user){
-      return res.json({user: user.authJSON()});
-    }).catch(next);
+    return user.save();
+  }).then(function(user){
+    // Return the user (token rep)
+    return res.json({user: user.authJSON()});
   }).catch(next);
 
 });

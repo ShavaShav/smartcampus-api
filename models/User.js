@@ -1,7 +1,7 @@
 'use strict';
 
 var crypto = require('crypto');
-var jwt = require('jsonwebtoken');
+var jwt    = require('jsonwebtoken');
 var secret = require('../config').JWT_SECRET;
 
 module.exports = (sequelize, DataTypes) => {

@@ -1,11 +1,10 @@
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
+var bodyParser   = require('body-parser');
 var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var config = require('./config');
-var cors = require('cors');
-require('./config/passport');
+var cors         = require('cors');
+var express      = require('express');
+var path         = require('path');
+var logger       = require('morgan');
+var config       = require('./config');
 
 var app = express();
 
@@ -24,6 +23,14 @@ if (PROD) {
     var protocol = req.get('x-forwarded-proto');
     protocol == 'https' ? next() : res.redirect('https://' + req.hostname + req.url);
   });
+
+  // Configure CORS preflight options
+  app.options('*', cors({
+    origin: true,
+    methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin'],
+    preflightContinue: false,
+  }));
 }
 
 // load passport for authentication
