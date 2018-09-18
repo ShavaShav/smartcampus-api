@@ -6,9 +6,9 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('smartcampus-api:server');
-var http = require('http');
+var app    = require('../app');
+var debug  = require('debug')('smartcampus-api:server');
+var http   = require('http');
 var config = require('../config');
 
 /**

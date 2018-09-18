@@ -1,8 +1,7 @@
-var models  = require('../../models');
-
-var router = require('express').Router();
+var router   = require('express').Router();
 var passport = require('passport');
-var auth = require('../auth');
+var auth     = require('../auth');
+var models   = require('../../models');
 
 // GET /events
 // Get all events

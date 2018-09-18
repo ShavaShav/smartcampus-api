@@ -1,12 +1,12 @@
 {
   "name": "smartcampus-api",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "node ./node_modules/nodemon/bin/nodemon ./bin/www",
-    "test": "node ./node_modules/mocha/bin/mocha --exit",
-    "coverage": "node ./node_modules/nyc/bin/nyc --reporter=html --reporter=text ./node_modules/mocha/bin/mocha --exit"
+    "start": "node bin/www",
+    "dev": "node node_modules/nodemon/bin/nodemon bin/www",
+    "test": "node node_modules/mocha/bin/mocha --exit",
+    "coverage": "node node_modules/nyc/bin/nyc --reporter=html --reporter=text node_modules/mocha/bin/mocha --exit"
   },
   "dependencies": {
     "body-parser": "~1.18.2",

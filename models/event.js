@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
 
   // Event details to expose in JSON responses
   Event.prototype.toJSON = function(){
-	return {
+    return {
       id: this.id,
       author: this.author.toJSON(),
       title: this.title,
@@ -30,8 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       body: this.body,
       created_at: this.createdAt,
       updated_at: this.updatedAt,
-    };
-
+    }
   };
 
   return Event;
