@@ -1,18 +1,17 @@
-var router   = require('express').Router();
-var passport = require('passport');
-var auth     = require('../auth');
-var models   = require('../../models');
+var router           = require('express').Router();
+var {OAuth2Client}   = require('google-auth-library');
+var auth             = require('../auth');
+var models           = require('../../models');
+var GOOGLE_CLIENT_ID = require('../../config').GOOGLE_CLIENT_ID;
 
 // GET /user
 // Return current user
 router.get('/', auth.required, function(req, res, next) {
   models.User.find({
-    where: {
-       id: req.user.id
-    }
+    where: { id: req.user.id }
   }).then(function(user) {
     if (!user) {
-        return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
+      return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
     }
     // Return the user (token rep)
     return res.json({user: user.authJSON()});
@@ -22,56 +21,57 @@ router.get('/', auth.required, function(req, res, next) {
 // POST /user/login
 // Authenticate user
 router.post('/login', function(req, res, next){
-  // Validate email and password input
-  if(!req.body.user.email){
-    return res.status(422).json({errors: {email: "can't be blank"}});
+
+  // Validate google id token was passed
+  if(!req.body.googleIdToken){
+    return res.status(422).json({errors: {googleIdToken: "can't be blank"}});
   }
 
-  if(!req.body.user.password){
-    return res.status(422).json({errors: {password: "can't be blank"}});
-  }
+  const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+  
+  // Use google API to check token
+  return client.verifyIdToken({
+    idToken: req.body.googleIdToken,
+    audience: GOOGLE_CLIENT_ID
+  }).then(ticket => {
+    // Parse the user payload from ticket
+    const payload = ticket.getPayload();
 
-  passport.authenticate('local', {session: false}, function(err, user, info){
-    // didn't pass authentication (bad password/email)
-    if(err){ return next(err); }
-
-    // authentication passed, return the user (token rep)
-    if(user){
-      return res.json({user: user.authJSON()});
-    } else {
-      return res.status(422).json(info);
+    // Restrict users to uwindsor.ca
+    if (payload['hd'] !== 'uwindsor.ca') {
+      throw new Error("Must be a uwindsor.ca account"); 
     }
-  })(req, res, next);
-});
 
-// POST /user/register
-// Register new user
-router.post('/register', function(req, res, next){
-  // Validate email, username, and password input
-  if(!req.body.user.username){
-    return res.status(422).json({errors: {username: "can't be blank"}});
-  }
+    // Form user json
+    const userBody = {
+      googleId: payload['sub'],
+      name: payload['name'],
+      firstName: payload['given_name'],
+      lastName: payload['family_name'],
+      locale: payload['locale'],
+      email: payload['email'],
+      picture: payload['picture']
+    }
 
-  if(!req.body.user.email){
-    return res.status(422).json({errors: {email: "can't be blank"}});
-  }
-
-  if(!req.body.user.password){
-    return res.status(422).json({errors: {password: "can't be blank"}});
-  }
-
-  models.User.create({
-    username: req.body.user.username,
-    email: req.body.user.email,
+    // Create/update user, return it.
+    return models.User.find({ 
+      where: { googleId: userBody.googleId } 
+    }).then(user => {
+      if (user) {
+        // User exists, update attributes
+        return user.updateAttributes(userBody);
+      } else {
+        // First time, create user
+        return models.User.create(userBody);
+      }
+    });
   }).then(user => {
-    // User created, can now set password
-    user.setPassword(req.body.user.password);
-    return user.save();
-  }).then(function(user){
-    // Return the user (token rep)
+    // Success. Return user in json form
     return res.json({user: user.authJSON()});
-  }).catch(next);
-
+  }).catch(err => {
+    // Auth error (either OAuth or uwindsor domain restriction)
+    return res.status(401).json({errors: {message: err.message}});
+  });
 });
 
 module.exports = router;
