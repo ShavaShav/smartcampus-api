@@ -1,20 +1,22 @@
-process.env.NODE_ENV = 'test'
-
-var should     = require('chai').should();
-var expect     = require('chai').expect;
-var request    = require('supertest');
-var app        = require('../app');
-var models     = require('../models');
-var testConfig = require('../config/db').test;
+var should                    = require('chai').should();
+var expect                    = require('chai').expect;
+var request                   = require('supertest');
+var app                       = require('../app');
+var { instance, User, Event } = require('../models');
+var utils                     = require('../utils');
 
 var token = null      // jwt for test user
 var userId = null;    // id of test user
 var eventId = null;   // id of test event
 var eventTime = null; // timestamp for event
+const now = new Date().toLocaleString();
 
 const testUser = {
   name: 'Test User',
-  email: 'test_user@fakemail.com'
+  email: 'test_user@uwindsor.ca',
+  googleId: 'd0s7s980d27hg047d',
+  createdAt: now,
+  updatedAt: now
 }
 
 const testEvent = {
@@ -23,19 +25,21 @@ const testEvent = {
   location: 'Erie Hall',
   link: 'http://uwindsor.ca/',
   body: 'A super fun test event.',
-  authorId: undefined
+  authorId: undefined,
+  createdAt: now,
+  updatedAt: now
 }
 
 // Assertion wrapper for fields of the test event response
 const assertTestEvent = (eventResponse) => {
-  expect(eventResponse.id).to.equal(eventId);
+  expect(eventResponse.id).to.deep.equal(eventId);
   expect(eventResponse.title).to.equal(testEvent.title);
   expect(new Date(eventResponse.time).toLocaleString()).to.equal(eventTime.toLocaleString());
   expect(eventResponse.location).to.equal(testEvent.location);
   expect(eventResponse.link).to.equal(testEvent.link);
   expect(eventResponse.body).to.equal(testEvent.body);
   expect(eventResponse).to.have.property('author');
-  expect(eventResponse.author.id).to.equal(userId);
+  expect(eventResponse.author.id).to.deep.equal(userId);
   expect(eventResponse.author.name).to.equal(testUser.name);
   expect(eventResponse.author.email).to.equal(testUser.email);
 }
@@ -43,30 +47,40 @@ const assertTestEvent = (eventResponse) => {
 describe('Events', () => {
 
   before(done => {
-    // Clear DB
-    models.sequelize.sync({ force: true, match: /_test$/ })
-      .then(() => {
-        // Create test user
-        return models.User.create(testUser);
-      }).then(user => {
-        // Save user id and token
-        userId = user.id;
-        token = user.generateJWT();
 
-        // Set test event time to tomorrow
-        eventTime = new Date();
-        eventTime.setDate(eventTime.getDate() + 1);
-        testEvent.time = eventTime;
+    // Reset DB
+    instance.schema.drop()
+      .catch(err=> {
+      return; // Unable to drop constraints is fine.
+    }).then(res => {
+      return instance.cypher('MATCH (n) DETACH DELETE n');
+    }).then(res => {
+      return instance.schema.install();
+    }).then(res => {
+      // Create test user
+      return User.create(testUser);
+    }).then(user => {
+      // Save user id and token
+      userId = user.identity().toString();
+      token = utils.generateJWT(user);
 
-        // Create test event for user
-        testEvent.authorId = user.id;
-        return models.Event.create(testEvent);
-      }).then(event => {
-        // Save event id
-        eventId = event.id;
-        done();
+      // Set test event time to tomorrow
+      eventTime = new Date();
+      eventTime.setDate(eventTime.getDate() + 1);
+      testEvent.time = eventTime.toLocaleString();
+
+      // Create test event for user
+      testEvent.authorId = userId;
+
+      return Event.create(testEvent).then(event => {
+        eventId = event.identity().toString(); // save id
+        return event.relateTo(user, 'posted_by');
       });
-  });
+    }).then(res => {
+      done();
+    });
+    
+  })
 
     it('should return event', done => {
       request(app)
@@ -124,7 +138,7 @@ describe('Events', () => {
           expect(res.body.event.link).to.equal(requestBody.event.link);
           expect(res.body.event.body).to.equal(requestBody.event.body);
           expect(res.body.event).to.have.property('author');
-          expect(res.body.event.author.id).to.equal(userId);
+          expect(res.body.event.author.id).to.deep.equal(userId);
           expect(res.body.event.author.name).to.equal(testUser.name);
           expect(res.body.event.author.email).to.equal(testUser.email);
           done();

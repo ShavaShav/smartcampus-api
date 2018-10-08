@@ -1,10 +1,10 @@
 var bodyParser   = require('body-parser');
-var cookieParser = require('cookie-parser');
 var cors         = require('cors');
 var express      = require('express');
-var path         = require('path');
 var logger       = require('morgan');
-var config       = require('./config');
+var path         = require('path');
+
+require('dotenv').config();
 
 var app = express();
 
@@ -12,7 +12,6 @@ var app = express();
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(cors());
 
 const PROD = app.get('env') === 'production';
