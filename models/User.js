@@ -6,10 +6,13 @@ var secret = require('../config').JWT_SECRET;
 
 module.exports = (sequelize, DataTypes) => {
   var User = sequelize.define('User', {
-    username: DataTypes.STRING,
     email: DataTypes.STRING,
-    hash: DataTypes.STRING,
-    salt: DataTypes.STRING
+    firstName: DataTypes.STRING,
+    googleId: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    locale: DataTypes.STRING,
+    name: DataTypes.STRING, // Usually, not always, firstname lastname
+    picture: DataTypes.STRING
   }, {
     freezeTableName: true,
     tableName: 'Users',
@@ -21,18 +24,6 @@ module.exports = (sequelize, DataTypes) => {
     User.hasMany(models.Event, {onDelete: 'cascade', foreignKey: 'authorId'});
   };
 
-  // Calculates and sets salt and hash using PBKDF2, given plaintext password
-  User.prototype.setPassword = function(password){
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 64, 'sha512').toString('hex');
-  };
-
-  // Checks plaintext password against hash, returns boolean
-  User.prototype.isValidPassword = function(password) {
-    var hash = crypto.pbkdf2Sync(password, this.salt, 10000, 64, 'sha512').toString('hex');
-    return this.hash === hash; 
-  };
-
   // Returns a fresh JSON webtoken for user
   User.prototype.generateJWT = function() {
     var today = new Date();
@@ -41,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
 
     return jwt.sign({
       id: this.id,
-      username: this.username,
       exp: parseInt(exp.getTime() / 1000),
     }, secret);
   };
@@ -50,8 +40,9 @@ module.exports = (sequelize, DataTypes) => {
   User.prototype.authJSON = function(){
     return {
       id: this.id,
-      username: this.username,
+      name: this.name,
       email: this.email,
+      picture: this.picture,
       created_at: this.createdAt,
       updated_at: this.updatedAt,
       token: this.generateJWT()
@@ -62,8 +53,9 @@ module.exports = (sequelize, DataTypes) => {
   User.prototype.toJSON = function(){
     return {
       id: this.id,
-      username: this.username,
+      name: this.name,
       email: this.email,
+      picture: this.picture,
       created_at: this.createdAt,
       updated_at: this.updatedAt
     };

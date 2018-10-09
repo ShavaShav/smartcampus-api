@@ -13,9 +13,8 @@ var eventId = null;   // id of test event
 var eventTime = null; // timestamp for event
 
 const testUser = {
-  username: 'TestUser',
-  email: 'test_user@fakemail.com',
-  password: 'my_pass_2345',
+  name: 'Test User',
+  email: 'test_user@fakemail.com'
 }
 
 const testEvent = {
@@ -37,7 +36,7 @@ const assertTestEvent = (eventResponse) => {
   expect(eventResponse.body).to.equal(testEvent.body);
   expect(eventResponse).to.have.property('author');
   expect(eventResponse.author.id).to.equal(userId);
-  expect(eventResponse.author.username).to.equal(testUser.username);
+  expect(eventResponse.author.name).to.equal(testUser.name);
   expect(eventResponse.author.email).to.equal(testUser.email);
 }
 
@@ -48,10 +47,7 @@ describe('Events', () => {
     models.sequelize.sync({ force: true, match: /_test$/ })
       .then(() => {
         // Create test user
-        return models.User.create(testUser).then(user => {
-          user.setPassword(testUser.password); // generate hash/salt
-          return user.save();
-        });
+        return models.User.create(testUser);
       }).then(user => {
         // Save user id and token
         userId = user.id;
@@ -129,7 +125,7 @@ describe('Events', () => {
           expect(res.body.event.body).to.equal(requestBody.event.body);
           expect(res.body.event).to.have.property('author');
           expect(res.body.event.author.id).to.equal(userId);
-          expect(res.body.event.author.username).to.equal(testUser.username);
+          expect(res.body.event.author.name).to.equal(testUser.name);
           expect(res.body.event.author.email).to.equal(testUser.email);
           done();
         }); 

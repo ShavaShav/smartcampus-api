@@ -33,9 +33,6 @@ if (PROD) {
   }));
 }
 
-// load passport for authentication
-require('./config/passport');
-
 // load routes
 app.use(require('./routes'));
 
