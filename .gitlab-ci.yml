@@ -1,7 +1,7 @@
 image: node:8
 
 services:
-  - mysql:5.7
+  - neo4j
 
 before_script:
   - npm install

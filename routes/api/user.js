@@ -1,21 +1,21 @@
 var router           = require('express').Router();
 var {OAuth2Client}   = require('google-auth-library');
 var auth             = require('../auth');
-var models           = require('../../models');
-var GOOGLE_CLIENT_ID = require('../../config').GOOGLE_CLIENT_ID;
+var User             = require('../../models').User;
+var utils            = require('../../utils');
 
 // GET /user
 // Return current user
 router.get('/', auth.required, function(req, res, next) {
-  models.User.find({
-    where: { id: req.user.id }
-  }).then(function(user) {
-    if (!user) {
-      return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
-    }
-    // Return the user (token rep)
-    return res.json({user: user.authJSON()});
-  }).catch(next);
+  return User.findById(req.user.id)
+    .then(user => {
+      if (!user) {
+        return res.status(401).json({errors: {message: "Unauthorized"}}); // JWT payload doesn't match a user
+      }
+
+      // Return the user (token rep)
+      return res.json(utils.userAuthResponse(user));
+    }).catch(next);
 });
 
 // POST /user/login
@@ -27,12 +27,13 @@ router.post('/login', function(req, res, next){
     return res.status(422).json({errors: {googleIdToken: "can't be blank"}});
   }
 
-  const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const client = new OAuth2Client(clientId);
   
   // Use google API to check token
   return client.verifyIdToken({
     idToken: req.body.googleIdToken,
-    audience: GOOGLE_CLIENT_ID
+    audience: clientId
   }).then(ticket => {
     // Parse the user payload from ticket
     const payload = ticket.getPayload();
@@ -43,6 +44,7 @@ router.post('/login', function(req, res, next){
     }
 
     // Form user json
+    const now = new Date().toLocaleString();
     const userBody = {
       googleId: payload['sub'],
       name: payload['name'],
@@ -50,24 +52,26 @@ router.post('/login', function(req, res, next){
       lastName: payload['family_name'],
       locale: payload['locale'],
       email: payload['email'],
-      picture: payload['picture']
+      picture: payload['picture'],
+      createdAt: now,
+      updatedAt: now
     }
 
-    // Create/update user, return it.
-    return models.User.find({ 
-      where: { googleId: userBody.googleId } 
-    }).then(user => {
+    // Create/update user, return a JWT
+    return User.first('googleId', userBody.googleId).then(user => {
       if (user) {
         // User exists, update attributes
-        return user.updateAttributes(userBody);
+        return user.update(userBody);
       } else {
         // First time, create user
-        return models.User.create(userBody);
+        return User.create(userBody);
       }
+    }).catch(err => {
+      console.log(err);
     });
   }).then(user => {
-    // Success. Return user in json form
-    return res.json({user: user.authJSON()});
+    // Return the authentication response (contains token)
+    return res.json(utils.userAuthResponse(user));
   }).catch(err => {
     // Auth error (either OAuth or uwindsor domain restriction)
     return res.status(401).json({errors: {message: err.message}});

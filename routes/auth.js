@@ -1,5 +1,4 @@
 var jwt    = require('express-jwt');
-var secret = require('../config').JWT_SECRET;
 
 // Settings for express-jwt checks at API endpoints
 function getTokenFromHeader(req){
@@ -20,11 +19,11 @@ and still provide access to unregistered users
 
 var auth = {
   required: jwt({
-    secret: secret,
+    secret: process.env.JWT_SECRET,
     getToken: getTokenFromHeader
   }),
   optional: jwt({
-    secret: secret,
+    secret: process.env.JWT_SECRET,
     credentialsRequired: false,
     getToken: getTokenFromHeader
   })

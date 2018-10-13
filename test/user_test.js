@@ -1,21 +1,12 @@
-process.env.NODE_ENV = 'test'
-
 var should     = require('chai').should();
 var expect     = require('chai').expect;
 var request    = require('supertest');
 var app        = require('../app');
 var models     = require('../models');
-var testConfig = require('../config/db').test;
 
 const jwtRegex = /[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+/;
 
 describe('User', () => {
-
-  // Clear DB before each test
-  beforeEach(done => {
-    models.sequelize.sync({ force: true, match: /_test$/ })
-      .then(() => { done() });
-  });
 
   it('should return 401 with no token', done => {
     request(app)
