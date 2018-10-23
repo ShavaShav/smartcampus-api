@@ -6,13 +6,14 @@ var utils          = require('../../utils');
 // GET /events
 // Get all events
 router.get('/', auth.optional, function(req, res, next) {
-  
+  const userId = req.user ? req.user.id : undefined;
+
   // Sorted by latest creation
   return Event.all({}, { createdAt: 'DESC' }).then(events => {
     // Stringify the event objects
     let eventBodies = [];
     events.forEach(event => {
-      body = utils.eventResponse(event);
+      body = utils.eventResponse(event, userId);
       eventBodies.push(body.event);
     })
     return res.json({events: eventBodies});
@@ -22,12 +23,14 @@ router.get('/', auth.optional, function(req, res, next) {
 // GET /events/#
 // Get single event
 router.get('/:id', auth.optional, function(req, res, next) {
+  const userId = req.user ? req.user.id : undefined;
+
   return Event.findById(req.params.id).then(event => {
     if (!event) {
       return res.status(404).json({error: "Event not found"});
     }
     // Return event with author json
-    return res.json(utils.eventResponse(event));
+    return res.json(utils.eventResponse(event, userId));
   });
 });
 
@@ -74,10 +77,10 @@ router.post('/', auth.required, function(req, res, next){
   return User.findById(req.user.id).then(user => {
     // Store event in database
     return Event.create(newEvent).then(event => {
-      // Form bi-directional relationship
+      // Form relationship
       return event.relateTo(user, 'posted_by').then(rel => {
         // Since author(_start) isn't eagerly loaded yet, pass explicitly
-        return res.json(utils.eventResponse(rel._end, rel._start));
+        return res.json(utils.eventResponse(rel._end, req.user.id, rel._start));
       });
     });
   }).catch(next);
@@ -94,7 +97,7 @@ router.delete('/:id', auth.required, function(req, res, next){
 
     const author = event.get('posted_by');
 
-    if (JSON.stringify(author.identity()) === JSON.stringify(req.user.id)) {
+    if (utils.sameIdentity(author.identity(), req.user.id)) {
       event.delete().then(() => {
         return res.json({message: "Event deleted"});
       }).catch(err => {
@@ -104,6 +107,26 @@ router.delete('/:id', auth.required, function(req, res, next){
       return res.status(401).json({error: "Failed to delete event. Unauthorized."})
     }
   })
+});
+
+// PUT /events/#/like
+// Adds a like relationship (indempotent so uses PUT)
+router.put('/:id/like', auth.required, function(req, res, next){
+  const userId = req.user.id;
+  const eventId = req.params.id;
+  // Get user
+  return User.findById(userId).then(user => {
+    // Get event
+    return Event.findById(eventId).then(event => {
+      // Form the like relation
+      return user.relateTo(event, 'likes');
+    });
+  }).then(rel => {
+    // Reload the event node to get most updated like count. TODO: Find way to eagerload into `rel`?
+    return Event.findById(eventId);
+  }).then(event => {
+    return res.json(utils.eventResponse(event, userId));
+  }).catch(next);
 });
 
 module.exports = router;
