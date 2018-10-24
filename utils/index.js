@@ -30,11 +30,10 @@ const userAuthResponse = (user) => {
 
 /**
  * Builds the event object to return to the front end
- * @param {Neode} event  // Event to create a JSON for
- * @param {String} userId   // Current user id (can be null)
- * @param {Neode} author // Author of event (optional, to overide)
+ * @param {Neode} event   // Event to create a JSON for
+ * @param {String} userId // Current user id (can be null)
  */
-const eventResponse = (event, userId = undefined, author = undefined) => {
+const eventResponse = (event, userId = undefined) => {
   let body = event.properties();
   // Return string rep of ID for frontend. TODO: use a slug for id
   body.id = event.identity().toString();
@@ -52,12 +51,10 @@ const eventResponse = (event, userId = undefined, author = undefined) => {
     }
   }
 
-  if (author === undefined) {
-    // No author given, attempt to eager load through relation
-    author = event.get('posted_by');
-  }
+  // Get eagerly loaded author through relation
+  const author = event.get('posted_by');
 
-  // Replace 'user' with 'author' and append to event
+  // Append the author's JSON response to event body (as 'author')
   body.author = userResponse(author).user;
 
   return {
