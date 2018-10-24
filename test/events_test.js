@@ -46,9 +46,8 @@ const assertTestEvent = (eventResponse) => {
 
 describe('Events', () => {
 
+  // Reset database before testing
   before(done => {
-
-    // Reset DB
     instance.schema.drop()
       .catch(err=> {
       return; // Unable to drop constraints is fine.
@@ -57,7 +56,15 @@ describe('Events', () => {
     }).then(res => {
       return instance.schema.install();
     }).then(res => {
-      // Create test user
+      done();
+    });
+  })
+
+  // Set up database with known state (user and event) for each test
+  beforeEach(done => {
+
+    instance.cypher('MATCH (n) DETACH DELETE n').then(res => {
+       // Create test user
       return User.create(testUser);
     }).then(user => {
       // Save user id and token
@@ -82,79 +89,109 @@ describe('Events', () => {
     
   })
 
-    it('should return event', done => {
-      request(app)
-        .get('/api/events/' + eventId)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .end((err, res) => {
-          assertTestEvent(res.body.event);
-          done();
-        });
-    });
+  it('should return event', done => {
+    request(app)
+      .get('/api/events/' + eventId)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event);
+        done();
+      });
+  });
 
-    it('should return list of events', done => {
-      request(app)
-        .get('/api/events')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .end((err, res) => {
-          expect(res.body.events).to.be.an('array');
-          expect(res.body.events).to.have.lengthOf(1);
-          assertTestEvent(res.body.events[0]);
-          done();
-        }); 
-    });
+  it('should return list of events', done => {
+    request(app)
+      .get('/api/events')
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.events).to.be.an('array');
+        expect(res.body.events).to.have.lengthOf(1);
+        assertTestEvent(res.body.events[0]);
+        done();
+      }); 
+  });
 
-    it('should post a new event', done => {
-      // Create a json request for event occuring a day from now
-      const newEventTime = new Date();
-      newEventTime.setDate(eventTime.getDate() + 1);
-      const requestBody = {
-        event: {
-          title: 'Test Post Event',
-          time: newEventTime,
-          location: 'CAW',
-          link: 'http://uwindsor.ca/',
-          body: 'A superer fun test event.'
-        }
+  it('should post a new event', done => {
+    // Create a json request for event occuring a day from now
+    const newEventTime = new Date();
+    newEventTime.setDate(eventTime.getDate() + 1);
+    const requestBody = {
+      event: {
+        title: 'Test Post Event',
+        time: newEventTime,
+        location: 'CAW',
+        link: 'http://uwindsor.ca/',
+        body: 'A superer fun test event.'
       }
+    }
 
-      request(app)
-        .post('/api/events')
-        .set('Accept', 'application/json')
-        .set('Authorization', 'Bearer ' + token)
-        .send(requestBody)
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .end((err, res) => {
-          // Should get back event and author details
-          expect(res.body.event).to.have.property('id');
-          expect(res.body.event.title).to.equal(requestBody.event.title);
-          expect(new Date(res.body.event.time).toLocaleString()).to.equal(requestBody.event.time.toLocaleString());
-          expect(res.body.event.location).to.equal(requestBody.event.location);
-          expect(res.body.event.link).to.equal(requestBody.event.link);
-          expect(res.body.event.body).to.equal(requestBody.event.body);
-          expect(res.body.event).to.have.property('author');
-          expect(res.body.event.author.id).to.deep.equal(userId);
-          expect(res.body.event.author.name).to.equal(testUser.name);
-          expect(res.body.event.author.email).to.equal(testUser.email);
-          done();
-        }); 
-    });
+    request(app)
+      .post('/api/events')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .send(requestBody)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        // Should get back event and author details
+        expect(res.body.event).to.have.property('id');
+        expect(res.body.event.title).to.equal(requestBody.event.title);
+        expect(new Date(res.body.event.time).toLocaleString()).to.equal(requestBody.event.time.toLocaleString());
+        expect(res.body.event.location).to.equal(requestBody.event.location);
+        expect(res.body.event.link).to.equal(requestBody.event.link);
+        expect(res.body.event.body).to.equal(requestBody.event.body);
+        expect(res.body.event).to.have.property('author');
+        expect(res.body.event.author.id).to.deep.equal(userId);
+        expect(res.body.event.author.name).to.equal(testUser.name);
+        expect(res.body.event.author.email).to.equal(testUser.email);
+        done();
+      }); 
+  });
 
-    it('should delete an event', done => {
-      request(app)
-        .delete('/api/events/' + eventId)
-        .set('Accept', 'application/json')
-        .set('Authorization', 'Bearer ' + token)
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .end((err, res) => {
-          expect(res.body.message).to.equal('Event deleted');
-          done();
-        }); 
-    });
+  it('should delete an event', done => {
+    request(app)
+      .delete('/api/events/' + eventId)
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.message).to.equal('Event deleted');
+        done();
+      }); 
+  });
+
+  it('should like an event', done => {
+    request(app)
+      .put('/api/events/' + eventId + '/like')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event); // got back the event we liked
+        expect(res.body.event.liked).to.be.true;
+        expect(res.body.event.likes).to.equal(1);
+        done();
+      }); 
+  });
+
+  it('should be unliked for new event', done => {
+    request(app)
+      .get('/api/events/' + eventId)
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event); // we haven't like this event yet
+        expect(res.body.event.liked).to.be.false;
+        expect(res.body.event.likes).to.equal(0);
+        done();
+      }); 
+  });
 });
