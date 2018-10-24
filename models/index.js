@@ -4,8 +4,8 @@ const Neode = require("neode");
 instance = new Neode.fromEnv();
 instance.setEnterprise(process.env.NEO4J_ENTERPRISE == 'true'); // 
 instance.with({
-  User: require("./User"),
-  Event: require("./Event")
+  User: require("./user"),
+  Event: require("./event")
 });
 
 // Export the models as well for convenience
