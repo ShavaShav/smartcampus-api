@@ -166,7 +166,19 @@ describe('Events', () => {
   });
 
   it('should like an event', done => {
+
     request(app)
+    .get('/api/events/' + eventId)
+    .set('Accept', 'application/json')
+    .set('Authorization', 'Bearer ' + token)
+    .expect('Content-Type', /json/)
+    .expect(200)
+    .end((err, res) => {
+      assertTestEvent(res.body.event); // event should be unliked initially
+      expect(res.body.event.liked).to.be.false;
+      expect(res.body.event.likes).to.equal(0);
+
+      request(app)
       .put('/api/events/' + eventId + '/like')
       .set('Accept', 'application/json')
       .set('Authorization', 'Bearer ' + token)
@@ -177,21 +189,7 @@ describe('Events', () => {
         expect(res.body.event.liked).to.be.true;
         expect(res.body.event.likes).to.equal(1);
         done();
-      }); 
-  });
-
-  it('should be unliked for new event', done => {
-    request(app)
-      .get('/api/events/' + eventId)
-      .set('Accept', 'application/json')
-      .set('Authorization', 'Bearer ' + token)
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .end((err, res) => {
-        assertTestEvent(res.body.event); // we haven't like this event yet
-        expect(res.body.event.liked).to.be.false;
-        expect(res.body.event.likes).to.equal(0);
-        done();
-      }); 
+      });
+    });
   });
 });
