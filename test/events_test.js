@@ -192,4 +192,33 @@ describe('Events', () => {
       });
     });
   });
+
+  it('should unlike an event', done => {
+    // like the event TODO: call db directly
+    request(app)
+    .put('/api/events/' + eventId + '/like')
+    .set('Accept', 'application/json')
+    .set('Authorization', 'Bearer ' + token)
+    .expect('Content-Type', /json/)
+    .expect(200)
+    .end((err, res) => {
+      assertTestEvent(res.body.event);
+      expect(res.body.event.liked).to.be.true;
+      expect(res.body.event.likes).to.equal(1);
+      
+      // unlike the event
+      request(app)
+      .del('/api/events/' + eventId + '/like')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event);
+        expect(res.body.event.liked).to.be.false;
+        expect(res.body.event.likes).to.equal(0);
+        done();
+      });
+    });
+  });
 });
