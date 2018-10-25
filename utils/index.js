@@ -1,5 +1,4 @@
-var jwt      = require('jsonwebtoken');
-var instance = require('../models').instance; 
+var jwt = require('jsonwebtoken');
 
 // Generates a json web token for a given user
 const generateJWT = (user) => {
@@ -62,51 +61,6 @@ const eventResponse = (event, userId = undefined) => {
   }
 }
 
-// Counts the number of a given relation to a given node 
-// WARNING: Bi-directional counts as 2 relations
-// ex. countRelations(Event node, 'LIKES') returns number of likes
-const countRelations = (node, relationship) => {
-  const nodeLabel = node.labels()[0];
-  const nodeId = node.identity();
-
-  // get related nodes through raw cypher query
-  return instance.cypher(
-      'MATCH (n:' + nodeLabel + ')-[' + relationship + ']-(r) ' + 
-      'WHERE ID(n)=' + nodeId + ' ' + 
-      'RETURN COUNT(r)');
-}
-
-// Gets all node related through relationship label.
-const getRelatedNodes = (node, relationship) => {
-  const nodeLabel = node.labels()[0];
-  const nodeId = node.identity();
-
-  // get related nodes through raw cypher query
-  return instance.cypher(
-      'MATCH (n:' + nodeLabel + ')-[' + relationship + ']-(r) ' + 
-      'WHERE ID(n)=' + nodeId + ' ' + 
-      'RETURN r');
-}
-
-/**
- * Removes the relation between two nodes
- * @param {Neode object} node 
- * @param {Neode object} otherNode 
- * @param {Name of edge} relationship 
- */
-const removeRelation = (node, otherNode, relationship) => {
-  const nodeLabel = node.labels()[0];
-  const nodeId = node.identity();
-
-  const otherNodeLabel = otherNode.labels()[0];
-  const otherNodeId = otherNode.identity();
-  return instance.cypher(
-    'MATCH (n:' + nodeLabel + ')-[r:' + relationship + ']-(o:' + otherNodeLabel + ') ' + 
-    'WHERE ID(n)=' + nodeId + ' AND ID(o)=' + otherNodeId + ' ' +
-    'DELETE r'
-  );
-}
-
 // Compares Neo4J loseless integer ids. Works for string versions as well
 const sameIdentity = (firstIdentity, secondIdentity) => {
   return JSON.stringify(firstIdentity) === JSON.stringify(secondIdentity)
@@ -118,8 +72,5 @@ module.exports = {
   userResponse, 
   userAuthResponse,
   eventResponse,
-  countRelations,
-  getRelatedNodes,
-  removeRelation,
   sameIdentity
 }

@@ -1,6 +1,6 @@
 var router         = require('express').Router();
 var auth           = require('../auth');
-var { Event, User} = require('../../models');
+var { Neode, Event, User} = require('../../models');
 var utils          = require('../../utils');
 
 // GET /events
@@ -146,7 +146,7 @@ router.delete('/:id/like', auth.required, function(req, res, next){
   return User.findById(userId).then(user => {
     // Get event
     return Event.findById(eventId).then(event => {
-      return utils.removeRelation(user, event, 'LIKES');
+      return Neode.removeRelation(user, event, 'LIKES');
     });
   }).then(() => {
     // Reload the event node to get most updated like count. TODO: Find way to load from deletion?

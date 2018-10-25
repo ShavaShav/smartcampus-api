@@ -1,9 +1,9 @@
-var should                    = require('chai').should();
-var expect                    = require('chai').expect;
-var request                   = require('supertest');
-var app                       = require('../app');
-var { instance, User, Event } = require('../models');
-var utils                     = require('../utils');
+var should                 = require('chai').should();
+var expect                 = require('chai').expect;
+var request                = require('supertest');
+var app                    = require('../app');
+var { Neode, User, Event } = require('../models');
+var utils                  = require('../utils');
 
 var token = null      // jwt for test user
 var userId = null;    // id of test user
@@ -48,13 +48,13 @@ describe('Events', () => {
 
   // Reset database before testing
   before(done => {
-    instance.schema.drop()
+    Neode.schema.drop()
       .catch(err=> {
       return; // Unable to drop constraints is fine.
     }).then(res => {
-      return instance.cypher('MATCH (n) DETACH DELETE n');
+      return Neode.cypher('MATCH (n) DETACH DELETE n');
     }).then(res => {
-      return instance.schema.install();
+      return Neode.schema.install();
     }).then(res => {
       done();
     });
@@ -63,7 +63,7 @@ describe('Events', () => {
   // Set up database with known state (user and event) for each test
   beforeEach(done => {
 
-    instance.cypher('MATCH (n) DETACH DELETE n').then(res => {
+    Neode.cypher('MATCH (n) DETACH DELETE n').then(res => {
        // Create test user
       return User.create(testUser);
     }).then(user => {

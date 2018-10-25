@@ -2,7 +2,6 @@ var should     = require('chai').should();
 var expect     = require('chai').expect;
 var request    = require('supertest');
 var app        = require('../app');
-var models     = require('../models');
 
 const jwtRegex = /[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+/;
 
