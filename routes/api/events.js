@@ -117,7 +117,7 @@ router.delete('/:id', auth.required, function(req, res, next){
 });
 
 // PUT /events/#/like
-// Adds a like relationship (indempotent so uses PUT)
+// Adds a like relationship
 router.put('/:id/like', auth.required, function(req, res, next){
   const userId = req.user.id;
   const eventId = req.params.id;
@@ -131,6 +131,25 @@ router.put('/:id/like', auth.required, function(req, res, next){
     });
   }).then(rel => {
     // Reload the event node to get most updated like count. TODO: Find way to eagerload into `rel`?
+    return Event.findById(eventId);
+  }).then(event => {
+    return res.json(utils.eventResponse(event, userId));
+  }).catch(next);
+});
+
+// PUT /events/#/like
+// Removes a like relationship
+router.delete('/:id/like', auth.required, function(req, res, next){
+  const userId = req.user.id;
+  const eventId = req.params.id;
+  // Get user
+  return User.findById(userId).then(user => {
+    // Get event
+    return Event.findById(eventId).then(event => {
+      return utils.removeRelation(user, event, 'LIKES');
+    });
+  }).then(() => {
+    // Reload the event node to get most updated like count. TODO: Find way to load from deletion?
     return Event.findById(eventId);
   }).then(event => {
     return res.json(utils.eventResponse(event, userId));

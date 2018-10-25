@@ -67,7 +67,7 @@ const eventResponse = (event, userId = undefined) => {
 // ex. countRelations(Event node, 'LIKES') returns number of likes
 const countRelations = (node, relationship) => {
   const nodeLabel = node.labels()[0];
-  const nodeId = event.identity();
+  const nodeId = node.identity();
 
   // get related nodes through raw cypher query
   return instance.cypher(
@@ -79,13 +79,32 @@ const countRelations = (node, relationship) => {
 // Gets all node related through relationship label.
 const getRelatedNodes = (node, relationship) => {
   const nodeLabel = node.labels()[0];
-  const nodeId = event.identity();
+  const nodeId = node.identity();
 
   // get related nodes through raw cypher query
   return instance.cypher(
       'MATCH (n:' + nodeLabel + ')-[' + relationship + ']-(r) ' + 
       'WHERE ID(n)=' + nodeId + ' ' + 
       'RETURN r');
+}
+
+/**
+ * Removes the relation between two nodes
+ * @param {Neode object} node 
+ * @param {Neode object} otherNode 
+ * @param {Name of edge} relationship 
+ */
+const removeRelation = (node, otherNode, relationship) => {
+  const nodeLabel = node.labels()[0];
+  const nodeId = node.identity();
+
+  const otherNodeLabel = otherNode.labels()[0];
+  const otherNodeId = otherNode.identity();
+  return instance.cypher(
+    'MATCH (n:' + nodeLabel + ')-[r:' + relationship + ']-(o:' + otherNodeLabel + ') ' + 
+    'WHERE ID(n)=' + nodeId + ' AND ID(o)=' + otherNodeId + ' ' +
+    'DELETE r'
+  );
 }
 
 // Compares Neo4J loseless integer ids. Works for string versions as well
@@ -101,5 +120,6 @@ module.exports = {
   eventResponse,
   countRelations,
   getRelatedNodes,
+  removeRelation,
   sameIdentity
 }
