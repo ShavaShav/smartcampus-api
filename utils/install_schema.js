@@ -3,16 +3,16 @@
 const dropSchema = process.argv[2] == 'drop';
 
 // Get Neode instance
-const instance = require('../models').instance;
+const Neode = require('../models').Neode;
 
 var query;
 
 if (dropSchema) {
   process.stdout.write("Dropping database schema...");
-  query = instance.schema.drop();
+  query = Neode.schema.drop();
 } else {
   process.stdout.write("Installing database schema...");
-  query = instance.schema.install();
+  query = Neode.schema.install();
 }
 
 query

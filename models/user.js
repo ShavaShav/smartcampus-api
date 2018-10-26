@@ -27,6 +27,13 @@ module.exports = {
     target: "Event",
     relationship: "POSTED",
     direction: "out"
+  },
+
+  likes: {
+    type: "nodes",
+    target: "Event",
+    relationship: "LIKES",
+    direction: "out"
   }
 
 };

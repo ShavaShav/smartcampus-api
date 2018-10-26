@@ -26,6 +26,14 @@ module.exports = {
     relationship: "POSTED",
     direction: "in",
     eager: true
+  },
+
+  liked_by: {
+    type: "nodes",
+    target: "User",
+    relationship: "LIKES",
+    direction: "in",
+    eager: true
   }
 
 };

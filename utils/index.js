@@ -1,5 +1,4 @@
-var jwt      = require('jsonwebtoken');
-var instance = require('../models').instance; 
+var jwt = require('jsonwebtoken');
 
 // Generates a json web token for a given user
 const generateJWT = (user) => {
@@ -28,17 +27,33 @@ const userAuthResponse = (user) => {
   return response;
 }
 
-const eventResponse = (event, author) => {
+/**
+ * Builds the event object to return to the front end
+ * @param {Neode} event   // Event to create a JSON for
+ * @param {String} userId // Current user id (can be null)
+ */
+const eventResponse = (event, userId = undefined) => {
   let body = event.properties();
   // Return string rep of ID for frontend. TODO: use a slug for id
   body.id = event.identity().toString();
 
-  if (!author) {
-    // No user given, attempt to eager load through relation
-    author = event.get('posted_by');
+  // Add number of likes
+  const likeNodes = event.get('liked_by');
+  body.likes = likeNodes.length;
+  body.liked = false;
+
+  // Determine if user likes
+  // TODO: Let client figure it out, or query db again?
+  if (userId !== undefined) {
+    if (likeNodes._values.find(likeNode => sameIdentity(likeNode.identity(), userId))) {
+      body.liked = true;
+    }
   }
 
-  // Replace 'user' with 'author' and append to event
+  // Get eagerly loaded author through relation
+  const author = event.get('posted_by');
+
+  // Append the author's JSON response to event body (as 'author')
   body.author = userResponse(author).user;
 
   return {
@@ -46,16 +61,9 @@ const eventResponse = (event, author) => {
   }
 }
 
-// Gets all node related through relationship label.
-const getRelatedNodes = (node, relationship) => {
-  const nodeLabel = node.labels()[0];
-  const nodeId = event.identity();
-
-  // get related nodes through raw cypher query
-  return instance.cypher(
-      'MATCH (n:' + nodeLabel + ')-[' + relationship + ']-(r) ' + 
-      'WHERE ID(n)=' + nodeId + ' ' + 
-      'RETURN r');
+// Compares Neo4J loseless integer ids. Works for string versions as well
+const sameIdentity = (firstIdentity, secondIdentity) => {
+  return JSON.stringify(firstIdentity) === JSON.stringify(secondIdentity)
 }
 
 // Common utility functions
@@ -63,5 +71,6 @@ module.exports = {
   generateJWT, 
   userResponse, 
   userAuthResponse,
-  eventResponse
+  eventResponse,
+  sameIdentity
 }
