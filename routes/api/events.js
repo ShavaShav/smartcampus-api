@@ -1,6 +1,6 @@
 var router         = require('express').Router();
 var auth           = require('../auth');
-var { Neode, Event, User} = require('../../models');
+var { Neode, Event, User, Comment} = require('../../models');
 var utils          = require('../../utils');
 
 // GET /events
@@ -153,6 +153,44 @@ router.delete('/:id/like', auth.required, function(req, res, next){
     return Event.findById(eventId);
   }).then(event => {
     return res.json(utils.eventResponse(event, userId));
+  }).catch(next);
+});
+
+// POST /events/#/comment
+// Creates a comment
+router.post('/:id/comment', auth.required, function(req, res, next){
+  const userId = req.user.id;
+  const eventId = req.params.id;
+  const now = new Date().toLocaleString();
+  
+  // Validate comment body is present
+  if(!req.body.comment.body){
+    return res.status(422).json({errors: {body: "can't be blank"}});
+  }
+
+  var newComment = {
+    body: req.body.comment.body,
+    createdAt: now,
+    updatedAt: now
+  };
+  //Get user
+  return User.findById(userId).then(user => {
+    //Get event
+    return Event.findById(eventId).then(event => {
+      // Create comment
+      return Comment.create(newComment).then(comment => {
+        return Promise.all([
+          // Add relationships
+          comment.relateTo(event, 'commented_on'),
+          comment.relateTo(user, 'comment_by')
+        ]);
+      })
+    })
+  }).then(rel => {
+    // Reload comment
+    return Comment.findById(rel[0]._end.identity());
+  }).then(comment => {
+    return res.json(utils.commentResponse(comment));
   }).catch(next);
 });
 

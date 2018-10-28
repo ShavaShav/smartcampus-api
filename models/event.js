@@ -21,10 +21,11 @@ module.exports = {
   "updatedAt": "localdatetime",
 
   has_comment: {
-    type: "node",
+    type: "nodes",
     target: "Comment",
     relationship: "HAS_COMMENT",
-    direction: "out"
+    direction: "out",
+    eager: true //TODO: Probably should not be eager
   },
 
   posted_by: {
