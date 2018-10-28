@@ -20,6 +20,13 @@ module.exports = {
   "createdAt": "localdatetime",
   "updatedAt": "localdatetime",
 
+  has_comment: {
+    type: "node",
+    target: "Comment",
+    relationship: "HAS_COMMENT",
+    direction: "out"
+  },
+
   posted_by: {
     type: "node",
     target: "User",
