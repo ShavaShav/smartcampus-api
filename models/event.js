@@ -25,7 +25,8 @@ module.exports = {
     target: "Comment",
     relationship: "HAS_COMMENT",
     direction: "out",
-    eager: true //TODO: Probably should not be eager
+    eager: true, //TODO: Probably should not be eager
+    'cascade' : 'delete'
   },
 
   posted_by: {
