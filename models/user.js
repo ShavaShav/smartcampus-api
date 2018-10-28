@@ -34,6 +34,12 @@ module.exports = {
     target: "Event",
     relationship: "LIKES",
     direction: "out"
-  }
+  },
 
+  commented: {
+    type: "node",
+    target: "Comment",
+    relationship: "COMMENTED",
+    direction: "out"
+  }
 };

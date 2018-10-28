@@ -52,12 +52,39 @@ const eventResponse = (event, userId = undefined) => {
 
   // Get eagerly loaded author through relation
   const author = event.get('posted_by');
+  // Get eagerly loaded comments
+  const comments = event.get('has_comment');
+ 
+
+  // Append the author's JSON response to event body (as 'author')
+  body.author = userResponse(author).user;
+
+  // Append all the comments
+  let commentBody = [];
+  comments.forEach(element => {
+    commentBody.push(commentResponse(element).comment);
+  });
+  
+  body.comments = commentBody;
+
+  return {
+    event: body
+  }
+}
+
+const commentResponse = (comment) => {
+  let body = comment.properties();
+  // Return string rep of ID for frontend. TODO: use a slug for id
+  body.id = comment.identity().toString();
+
+  // Get eagerly loaded author through relation
+  const author = comment.get('comment_by');
 
   // Append the author's JSON response to event body (as 'author')
   body.author = userResponse(author).user;
 
   return {
-    event: body
+    comment: body
   }
 }
 
@@ -72,5 +99,6 @@ module.exports = {
   userResponse, 
   userAuthResponse,
   eventResponse,
+  commentResponse,
   sameIdentity
 }

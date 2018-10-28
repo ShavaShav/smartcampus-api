@@ -20,6 +20,15 @@ module.exports = {
   "createdAt": "localdatetime",
   "updatedAt": "localdatetime",
 
+  has_comment: {
+    type: "nodes",
+    target: "Comment",
+    relationship: "HAS_COMMENT",
+    direction: "out",
+    eager: true, //TODO: Probably should not be eager
+    'cascade' : 'delete'
+  },
+
   posted_by: {
     type: "node",
     target: "User",

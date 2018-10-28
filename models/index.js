@@ -75,11 +75,13 @@ Neode = new NeodeDriver.fromEnv();
 Neode.setEnterprise(process.env.NEO4J_ENTERPRISE == 'true'); // 
 Neode.with({
   User: require("./user"),
-  Event: require("./event")
+  Event: require("./event"),
+  Comment: require("./comment")
 });
 
 // Export the models as well for convenience
 const User = Neode.model('User');
 const Event = Neode.model('Event');
+const Comment = Neode.model('Comment');
 
-module.exports = { Neode, User, Event };
+module.exports = { Neode, User, Event, Comment };
