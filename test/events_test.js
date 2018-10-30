@@ -175,8 +175,7 @@ describe('Events', () => {
     .expect(200)
     .end((err, res) => {
       assertTestEvent(res.body.event); // event should be unliked initially
-      expect(res.body.event.liked).to.be.false;
-      expect(res.body.event.likes).to.equal(0);
+      expect(res.body.event.likes).to.be.lengthOf(0);
 
       request(app)
       .put('/api/events/' + eventId + '/like')
@@ -186,8 +185,8 @@ describe('Events', () => {
       .expect(200)
       .end((err, res) => {
         assertTestEvent(res.body.event); // got back the event we liked
-        expect(res.body.event.liked).to.be.true;
-        expect(res.body.event.likes).to.equal(1);
+        expect(res.body.event.likes).to.be.lengthOf(1);
+        expect(res.body.event.likes[0].id).to.deep.equal(userId)
         done();
       });
     });
@@ -203,8 +202,7 @@ describe('Events', () => {
     .expect(200)
     .end((err, res) => {
       assertTestEvent(res.body.event);
-      expect(res.body.event.liked).to.be.true;
-      expect(res.body.event.likes).to.equal(1);
+      expect(res.body.event.likes).to.be.lengthOf(1);
       
       // unlike the event
       request(app)
@@ -215,8 +213,7 @@ describe('Events', () => {
       .expect(200)
       .end((err, res) => {
         assertTestEvent(res.body.event);
-        expect(res.body.event.liked).to.be.false;
-        expect(res.body.event.likes).to.equal(0);
+        expect(res.body.event.likes).to.be.lengthOf(0);
         done();
       });
     });
