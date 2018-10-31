@@ -37,36 +37,27 @@ const eventResponse = (event, userId = undefined) => {
   // Return string rep of ID for frontend. TODO: use a slug for id
   body.id = event.identity().toString();
 
-  // Add number of likes
-  const likeNodes = event.get('liked_by');
-  body.likes = likeNodes.length;
-  body.liked = false;
-
-  // Determine if user likes
-  // TODO: Let client figure it out, or query db again?
-  if (userId !== undefined) {
-    if (likeNodes._values.find(likeNode => sameIdentity(likeNode.identity(), userId))) {
-      body.liked = true;
-    }
-  }
-
-  // Get eagerly loaded author through relation
-  const author = event.get('posted_by');
-  // Get eagerly loaded comments
-  const comments = event.get('has_comment');
- 
-
   // Append the author's JSON response to event body (as 'author')
+  const author = event.get('posted_by');
   body.author = userResponse(author).user;
 
+  // Append like nodes
+  const likes = event.get('liked_by');
+  let likesBody = [];
+  likes.forEach(liker => {
+    likesBody.push(userResponse(liker).user);
+  });
+  body.likes = likesBody;
+  
   // Append all the comments
+  const comments = event.get('has_comment');
   let commentBody = [];
   comments.forEach(element => {
     commentBody.push(commentResponse(element).comment);
   });
-  
   body.comments = commentBody;
 
+  // Return the prepared event object
   return {
     event: body
   }
