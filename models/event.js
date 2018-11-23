@@ -43,6 +43,14 @@ module.exports = {
     relationship: "LIKES",
     direction: "in",
     eager: true
-  }
+  },
 
+  attended_by: {
+    type: "nodes",
+    target: "User",
+    relationship: "ATTENDING",
+    direction: "in",
+    eager: true
+  }
+  
 };

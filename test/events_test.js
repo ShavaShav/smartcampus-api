@@ -218,4 +218,58 @@ describe('Events', () => {
       });
     });
   });
+
+  it('should attend an event', done => {
+
+    request(app)
+    .get('/api/events/' + eventId)
+    .set('Accept', 'application/json')
+    .set('Authorization', 'Bearer ' + token)
+    .expect('Content-Type', /json/)
+    .expect(200)
+    .end((err, res) => {
+      assertTestEvent(res.body.event); // event should be unattended initially
+      expect(res.body.event.attendees).to.be.lengthOf(0);
+
+      request(app)
+      .put('/api/events/' + eventId + '/attend')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event); // got back the event we liked
+        expect(res.body.event.attendees).to.be.lengthOf(1);
+        expect(res.body.event.attendees[0].id).to.deep.equal(userId)
+        done();
+      });
+    });
+  });
+
+  it('should unattend an event', done => {
+    // attend the event TODO: call db directly instead of through api
+    request(app)
+    .put('/api/events/' + eventId + '/attend')
+    .set('Accept', 'application/json')
+    .set('Authorization', 'Bearer ' + token)
+    .expect('Content-Type', /json/)
+    .expect(200)
+    .end((err, res) => {
+      assertTestEvent(res.body.event);
+      expect(res.body.event.attendees).to.be.lengthOf(1);
+      
+      // unlike the event
+      request(app)
+      .del('/api/events/' + eventId + '/attend')
+      .set('Accept', 'application/json')
+      .set('Authorization', 'Bearer ' + token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        assertTestEvent(res.body.event);
+        expect(res.body.event.attendees).to.be.lengthOf(0);
+        done();
+      });
+    });
+  });
 });
