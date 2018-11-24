@@ -36,6 +36,13 @@ module.exports = {
     direction: "out"
   },
 
+  attending: {
+    type: "nodes",
+    target: "Event",
+    relationship: "ATTENDING",
+    direction: "out"
+  },
+
   commented: {
     type: "node",
     target: "Comment",

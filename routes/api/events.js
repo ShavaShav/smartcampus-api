@@ -137,7 +137,7 @@ router.put('/:id/like', auth.required, function(req, res, next){
   }).catch(next);
 });
 
-// PUT /events/#/like
+// DELETE /events/#/like
 // Removes a like relationship
 router.delete('/:id/like', auth.required, function(req, res, next){
   const userId = req.user.id;
@@ -147,6 +147,46 @@ router.delete('/:id/like', auth.required, function(req, res, next){
     // Get event
     return Event.findById(eventId).then(event => {
       return Neode.removeRelation(user, event, 'LIKES');
+    });
+  }).then(() => {
+    // Reload the event node to get most updated like count. TODO: Find way to load from deletion?
+    return Event.findById(eventId);
+  }).then(event => {
+    return res.json(utils.eventResponse(event, userId));
+  }).catch(next);
+});
+
+// PUT /events/#/attend
+// Adds an attending relationship
+router.put('/:id/attend', auth.required, function(req, res, next){
+  const userId = req.user.id;
+  const eventId = req.params.id;
+  
+  // Get user
+  return User.findById(userId).then(user => {
+    // Get event
+    return Event.findById(eventId).then(event => {
+      // Form the attending relation
+      return user.relateTo(event, 'attending');
+    });
+  }).then(rel => {
+    // Reload the event node to get most updated attendees. TODO: Find way to eagerload into `rel`?
+    return Event.findById(eventId);
+  }).then(event => {
+    return res.json(utils.eventResponse(event, userId));
+  }).catch(next);
+});
+
+// DELETE /events/#/attend
+// Removes an attending relationship
+router.delete('/:id/attend', auth.required, function(req, res, next){
+  const userId = req.user.id;
+  const eventId = req.params.id;
+  // Get user
+  return User.findById(userId).then(user => {
+    // Get event
+    return Event.findById(eventId).then(event => {
+      return Neode.removeRelation(user, event, 'ATTENDING');
     });
   }).then(() => {
     // Reload the event node to get most updated like count. TODO: Find way to load from deletion?

@@ -48,12 +48,20 @@ const eventResponse = (event, userId = undefined) => {
     likesBody.push(userResponse(liker).user);
   });
   body.likes = likesBody;
+
+  // Append attendee nodes
+  const attendees = event.get('attended_by');
+  let attendeesBody = [];
+  attendees.forEach(attendee => {
+    attendeesBody.push(userResponse(attendee).user);
+  });
+  body.attendees = attendeesBody;
   
   // Append all the comments
   const comments = event.get('has_comment');
   let commentBody = [];
-  comments.forEach(element => {
-    commentBody.push(commentResponse(element).comment);
+  comments.forEach(comment => {
+    commentBody.push(commentResponse(comment).comment);
   });
   body.comments = commentBody;
 
